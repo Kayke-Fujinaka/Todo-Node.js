@@ -94,6 +94,19 @@ app.put(
   }
 );
 
+app.patch(
+  "/todos/:id/done",
+  checksExistsUserAccount,
+  checkExistsTodo,
+  (request, response) => {
+    const { todo } = request;
+
+    todo.done = !todo.done;
+
+    return response.json(todo);
+  }
+);
+
 app.delete("/todos/:id", checksExistsUserAccount, (request, response) => {
   // Complete aqui
 });
