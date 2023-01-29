@@ -22,7 +22,9 @@ function checksExistsUserAccount(request, response, next) {
   return next();
 }
 
-function checkExistsTodo(request, response, next) {
+function checksCreateTodosUserAvailability(request, response, next) {}
+
+function checksTodoExists(request, response, next) {
   const { user } = request;
   const { id } = request.params;
 
@@ -35,12 +37,26 @@ function checkExistsTodo(request, response, next) {
   return next();
 }
 
+function findUserById(request, response, next) {
+  const { id } = request.params;
+
+  const user = users.find((user) => user.id === id);
+
+  if (!user) return response.status(404).json({ error: "User not found!" });
+
+  request.user = user;
+
+  return next();
+}
+
 app.post("/users", (request, response) => {
   const { name, username } = request.body;
 
-  const userAlreadyExists = users.some((user) => user.username === username);
+  const usernameAlreadyExists = users.some(
+    (user) => user.username === username
+  );
 
-  if (userAlreadyExists)
+  if (usernameAlreadyExists)
     return response.status(400).json({ error: "Username already exists!" });
 
   const user = {
@@ -53,6 +69,12 @@ app.post("/users", (request, response) => {
   users.push(user);
 
   return response.status(201).send(user);
+});
+
+app.get("/users/:id", findUserById, (request, response) => {
+  const { user } = request;
+
+  return response.json(user);
 });
 
 app.get("/todos", checksExistsUserAccount, (request, response) => {
@@ -82,7 +104,7 @@ app.post("/todos", checksExistsUserAccount, (request, response) => {
 app.put(
   "/todos/:id",
   checksExistsUserAccount,
-  checkExistsTodo,
+  checksTodoExists,
   (request, response) => {
     const { todo } = request;
     const { title, deadline } = request.body;
@@ -97,7 +119,7 @@ app.put(
 app.patch(
   "/todos/:id/done",
   checksExistsUserAccount,
-  checkExistsTodo,
+  checksTodoExists,
   (request, response) => {
     const { todo } = request;
 
@@ -110,7 +132,7 @@ app.patch(
 app.delete(
   "/todos/:id",
   checksExistsUserAccount,
-  checkExistsTodo,
+  checksTodoExists,
   (request, response) => {
     const { user, todo } = request;
 
